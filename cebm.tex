@@ -151,7 +151,7 @@ Despite steady progress, work on disentangled representations and structured VAE
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{figures/cebm_overview_v3.pdf}
+\includegraphics[width=\textwidth]{figures/cebm_overview_v2.pdf}
 \vspace*{-4ex}
 \caption{Comparison between the generative model in a VAE and CEBM. (\emph{Left}) In a VAE, the generator reconstructs an image $x$ by mapping the corresponding latent variable $z$ to pixel space to get a reconstruction $\mu_\q(z)$. The likelihood $p_\theta(x | z)$, defined by sufficient statistics $t(\cdot)$ and natural parameter $\eta(\cdot)$, can be interpreted as measuring the agreement between the image $x$ and its reconstruction $\mu_\q(z)$ in pixel space. The posterior in VAE is intractable and is approximated by an encoder network $q_\f(z|x)$. (\emph{Right}) A CEBM defines an energy-based likelihood that is defined by the neural sufficient statistics $t_\theta(\cdot)$ which serves as an encoder that maps $x$ to an intermediate-level representation, and the natural parameters $\eta(\cdot)$ that maps the latent variable $z$ to the same level. The likelihood $p_\theta(x | z)$ in a CEBM can be interpreted as measuring the agreement between $x$ and $z$ at their intermediate level of representations. In contrast to a VAE, the posterior in CEBM is tractable and is determined by sufficient statistics $t_\q(x)$ and natural parameters $\lambda_{\text{prior}}$.}
 \label{fig:overview}
@@ -362,12 +362,12 @@ This prior is conjugate to the likelihood in~\ref{eq:exponential-family} when it
 \end{align}
 The convenient property of conjugate exponential families is that both the marginal likelihood $p(x \mid \lambda)$ and the posterior $p(\eta \mid x, \lambda)$ are tractable. The reason is that the joint probability has the form
 \begin{align*}
-    & p(x, \eta \mid \lambda) = p(x \mid \eta) \: p(\eta \mid \lambda)\\
+    p(x, \eta \mid \lambda) &= p(x \mid \eta) \: p(\eta \mid \lambda)\\
     & 
     =h(x)h_0(\eta)\exp \big\{ 
-      \eta^\top \! \big(\lambda_1 \!+\! t(x)\big) 
-      -
-      A(\eta) (\lambda_2 \!+\! 1) 
+      \eta^\top \! \big(\lambda_1 \!+\! t(x)\big) \\
+      &
+      \quad - A(\eta) (\lambda_2 \!+\! 1) 
       -
       A_0(\lambda)
     \big\}.
@@ -376,8 +376,8 @@ If we substitute $\tilde{\lambda}_1 = \lambda_1 + t(x)$ and $\tilde{\lambda}_2 =
 \begin{align}
     \label{eq:cef-joint}
     \begin{split}
-    & p(x, \eta \mid \lambda) = p(\eta \mid x, \lambda) \: p(x \mid \lambda) \\
-    & \quad = p(\eta \mid \tilde{\lambda}) \: h(x) \exp\big\{ A_0(\tilde{\lambda}) - A_0(\lambda) \big\}.
+    p(x, \eta \mid \lambda) &= p(\eta \mid x, \lambda) \: p(x \mid \lambda) \\
+    & = p(\eta \mid \tilde{\lambda}) \: h(x) \exp\big\{ A_0(\tilde{\lambda}) - A_0(\lambda) \big\}.
     \end{split}
 \end{align}
 This shows that the posterior is in the same exponential family as the prior, and that we can express the marginal likelihood using $h(\cdot)$ and $A_0(\cdot)$
@@ -496,7 +496,7 @@ CEBMs have a property that is somewhat counter-intuitive. While the posterior in
 \begin{align}
     p_\q(z) = \frac{\exp \{b(z)\}}{Z_\q} \ \int \! dx \: \exp \{t_\q(x)^\top \eta(z) \}.
 \end{align}
-In other words, the term $b(z)$ defines an inductive bias, but this bias is different from the bias in a VAE, where the prior is always tractable by construction, \footnote{Concretely, the bias in a VAE (Eq.~\ref{eq:vae-bias}) contains the log prior $\log p_\q(z)$ and the log normalizer $A(\eta_\q(z))$ of the likelihood. In a CEBM, by contrast, we omit the second term $A_\q(\eta(z)) = \log \int dx \exp \{ t_\q(z)^\top \eta(z) \}$, which is intractable, and hereby implicitly incorporate it into the prior.} but it imposes a soft constraint on the geometry of the latent space.
+In other words, the term $b(z)$ defines an inductive bias, but this bias is different from the bias in a VAE, where the prior is always tractable by construction\footnote{Concretely, the bias in a VAE (Eq.~\ref{eq:vae-bias}) contains the log prior $\log p_\q(z)$ and the log normalizer $A(\eta_\q(z))$ of the likelihood. In a CEBM, by contrast, we omit the second term $A_\q(\eta(z)) = \log \int dx \exp \{ t_\q(z)^\top \eta(z) \}$, which is intractable, and hereby implicitly incorporate it into the prior.}, but it imposes a soft constraint on the geometry of the latent space.
 
 
 % \begin{figure}[!t]
@@ -653,17 +653,19 @@ We optimize this marginal with respect hyperaparameters $\lambda$ as well as the
 
 % Our work focus on learning latent energy-based models in an unsupervised manner. 
 
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.235\textwidth]{figures/mnist_cebm_buffer_samples.pdf}
-\includegraphics[width=0.235\textwidth]{figures/fmnist_cebm_samples.pdf}
-\includegraphics[width=0.235\textwidth]{figures/svhn_cebm_buffer_samples3.pdf}
-\includegraphics[width=0.235\textwidth]{figures/cifar10_cebm_buffer_samples.pdf}
-\vspace*{-1.5ex}
-\caption{Samples generated from a CEBM trained on MNIST, Fashion-MNIST, SVHN and CIFAR-10.}
-%\vspace*{-1.5ex}
-\label{fig:generated-samples}
-\end{figure*}
+
+
+% \begin{figure*}[!t]
+% \centering
+% \includegraphics[width=0.235\textwidth]{figures/mnist_cebm_buffer_samples.pdf}
+% \includegraphics[width=0.235\textwidth]{figures/fmnist_cebm_samples.pdf}
+% \includegraphics[width=0.235\textwidth]{figures/svhn_cebm_buffer_samples3.pdf}
+% \includegraphics[width=0.235\textwidth]{figures/cifar10_cebm_buffer_samples.pdf}
+% \vspace*{-1.5ex}
+% \caption{Samples generated from a CEBM trained on MNIST, Fashion-MNIST, SVHN and CIFAR-10.}
+% %\vspace*{-1.5ex}
+% \label{fig:generated-samples}
+% \end{figure*}
 
 
 
@@ -742,7 +744,29 @@ We optimize this marginal with respect hyperaparameters $\lambda$ as well as the
 % \end{figure}
 
 
-
+\begin{figure}[!t]
+\centering
+\begin{subfigure}{0.22\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/mnist_cebm_buffer_samples.pdf}
+\end{subfigure} %%
+\begin{subfigure}{0.22\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/fmnist_cebm_samples.pdf}
+\end{subfigure}
+\begin{subfigure}{0.22\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/svhn_cebm_buffer_samples3.pdf}
+\end{subfigure} %%
+\begin{subfigure}{0.22\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/cifar10_cebm_buffer_samples.pdf}
+\end{subfigure}
+% \vspace*{-1.5ex}
+\caption{Samples generated from a CEBM trained on MNIST, Fashion-MNIST, SVHN and CIFAR-10.}
+%\vspace*{-1.5ex}
+\label{fig:generated-samples}
+\end{figure}
 Our experiments evaluate to what extent CEBMs can learn representations that encode meaningful factors of variation, whilst discarding details about the input that we would consider noise. This question is difficult to answer in generality, and in some sense not well-posed; whether a factor of variation should be considered signal or noise can depend on context. For this reason, our experiments primarily focus on the extent to which representations in CEBMs can recover the multimodal structure in datasets that are normally used for classification. %(MNIST~\cite{lecun1998gradient}, Fashion-MNIST~\cite{xiao2017fashion}, SVHN~\cite{netzer2011reading}, and CIFAR-10~\cite{krizhevsky2009learning}). 
 While class labels are an imperfect proxy, in the sense that they do not reflect all factors of variation that we may want to encode in a representation, they provide a means of quantifying differences between representations that were learned in an unsupervised manner. 
 
@@ -785,6 +809,7 @@ Finally, to quantify the extent to which the learned representations can improve
 % \label{tab:fid-scores}
 % \end{table}
 
+
 \vspace*{-1.ex}
 \subsection{Network Architectures and Training}
 \vspace*{-1ex}
@@ -793,6 +818,47 @@ Finally, to quantify the extent to which the learned representations can improve
 \paragraph{Architectures.} CEBMs employ an encoder network $t_\q(x)$ in the form of 4-layer CNN (which is proposed by~\citet{nijkamp2019anatomy}), followed by an MLP output layer. For IGEBMs, we add one extra MLP as its final layer which outputs a scalar value. VAEs use the same encoder network as the CEBMs, and use a decoder network in form of an MLP followed by 4-layer CNN. See Appendix~\ref{appendix-architectures} for architecture details.
 
 \paragraph{Optimization.} In CEBMs and VAEs we choose the dimension of latent variables to be 128. We found that the optimization becomes difficult with smaller dimensions. For training stability, we L2 regularize energy magnitudes (proposed by~\citet{du2019implicit}). We train our models using 60 SGLD steps, 90k gradient steps, batch size 128, Adam optimizer with learning rate 1e-4. See Appendix~\ref{app:sec:training-details} for training details.
+
+\begin{figure}[!t]
+\centering
+\begin{subfigure}{0.42\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/overview_figure.pdf}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/confusion_matrix_22row_cifar10.pdf}
+% \caption{Confusion Matrices of 1-nearest-neighbor classification on CIFAR10. We compute the L2 distance in the latent space to define neighbors of each testing example. The CEBM representation more closely aligns with class labels as compared to a VAE, as well as when compared to pixel-based and IGEBM-based baselines (additional results in Appendix~\ref{appendix-sec:confuion matrices}).}
+\end{subfigure}
+\caption{(\emph{Left}) Samples from CIFAR-10 along with the top 2-nearest-neighbors in pixel space, the latent space of a VAE, and the latent space of a CEBM. (\emph{Right}) Confusion matrices of 1-nearest-neighbor classification on CIFAR-10 based on L2 distance in the latent space. On average, CEBM representations more closely align with class labels compared to VAE.}
+\label{fig:nearest-neighbours}
+%\vspace*{-2.0ex}
+\end{figure}
+
+\begin{table*}[!t]
+\caption{Classification accuracy. We pre-train 5 unsupervised models (rows) on MNIST, Fashion-MNIST, CIFAR10, SVHN. Then we train logistic classifiers using 1, 10, 100 examples per class (i.e. shots) and the full training dataset. We report the classification accuracy on the test set. We observe that CEBM outperforms the baselines in most scenarios.}
+\centering
+%\vspace*{-1.5ex}
+\begin{tabular}{l|cccc|cccc|cccc|cccc}
+\toprule
+ & \multicolumn{4}{c}{MNIST} & \multicolumn{4}{|c}{Fashion-MNIST} & \multicolumn{4}{|c}{CIFAR-10} & \multicolumn{4}{|c}{SVHN}\\
+Models & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ \\
+\midrule
+\midrule
+Classifier & 42 & 79 & 93 & 99 & 46 & 68 & 81 & 90 & 16 & 24 & 39 & 71 & 12 & 19 & 62 & 90\\
+\midrule
+VAE & 42 & 85 & 92 & 95 & 41 & 63 & 72 & 81 & 16 & 22 & 31 & 38 & 13 & 13 & 16 & 36\\
+GMM-VAE & 53 & 86 & 93 & 97 & 49 & 68 & 79 & 84 & 19 & 23 & 33 & 39 & 13 & 14 & 23 & 56  \\
+DCGAN & 9 & 13 & 13 & 14 & 10 & 11 & 16 & 17 & 10 & 11 & 12 & 13 & 9 & 11 & 12 & 20 \\
+BIGAN & - & - & - & - & 51 & 70 & 76 & 81 & 17 & 26 & 36 & 45 & - & - & - & -  \\ 
+\midrule
+IGEBM & 63 & 89 & 95 & 97 & 50 & 70 & 79 & 83 & 16 & 26 & 33 & 42 & 10 & 16 & 35 & 49\\
+CEBM & 67 & 89 & 95 & 97 & 52 & 70 & 77 & 83 & 19 & 30 & 42 & 52 & 12 & 25 & 48 & 70 \\
+CEBMM & 67 & 91 & 97 & 98 & 52 & 71 & 80 & 85 & 16 & 28 & 42 & 51 & 10 & 17 & 39 & 60 \\
+\bottomrule
+\end{tabular}
+\label{tab:few-shot classification}
+\end{table*}
 
 \paragraph{Hyperparameter Sensitivity.} As observed in previous work~\cite{du2019implicit,grathwohl2019your}, training EBMs can be a challenging task that often requires a thorough hyperparameter search. We found that the choices of activation function, learning rate, number of SGLD steps, and regularization will all affect training stability. Models regularly diverge during training, and it is difficult to perform diagnostics given that $\log p_{\q}(x)$ cannot be computed. As suggested by~\cite{nijkamp2019anatomy}, we found checking the difference in energy between data and model samples to be helpful for verifying stable training. We also note that in general, we observed a trade-off between sample quality and the predictive power of latent variables in our experiments. We leave investigation of the source of this trade-off to future work, but we suspect that this is because SGLD is having more difficulty to converge when the latent space is more disjoint.  
 
@@ -812,21 +878,26 @@ Finally, to quantify the extent to which the learned representations can improve
 % In order to assess the quality of the latent space in CEBMs, we train a classifier on the training latent variables. Our results show that CEBMs can indeed learn a more meaningful latent space compared to VAEs.
 
 
-\begin{figure*}[!t]
-\centering
-\begin{subfigure}{0.4\textwidth}
-\centering
-\includegraphics[width=\linewidth]{figures/overview_figure.pdf}
-\end{subfigure}%%%
-\begin{subfigure}{0.55\textwidth}
-\centering
-\includegraphics[width=\linewidth]{figures/confusion_matrix_22row_cifar10.pdf}
-% \caption{Confusion Matrices of 1-nearest-neighbor classification on CIFAR10. We compute the L2 distance in the latent space to define neighbors of each testing example. The CEBM representation more closely aligns with class labels as compared to a VAE, as well as when compared to pixel-based and IGEBM-based baselines (additional results in Appendix~\ref{appendix-sec:confuion matrices}).}
-\end{subfigure}
-\caption{(\emph{Left}) Samples from CIFAR-10 along with the top 2-nearest-neighbors in pixel space, the latent space of a VAE, and the latent space of a CEBM. (\emph{Right}) Confusion matrices of 1-nearest-neighbor classification on CIFAR-10 based on L2 distance in the latent space. On average, CEBM representations more closely align with class labels compared to VAE.}
-\label{fig:nearest-neighbours}
-%\vspace*{-2.0ex}
-\end{figure*}
+
+
+% \begin{figure*}[!t]
+% \centering
+% \begin{subfigure}{0.4\textwidth}
+% \centering
+% \includegraphics[width=\linewidth]{figures/overview_figure.pdf}
+% \end{subfigure}%%%
+% \begin{subfigure}{0.55\textwidth}
+% \centering
+% \includegraphics[width=\linewidth]{figures/confusion_matrix_22row_cifar10.pdf}
+% % \caption{Confusion Matrices of 1-nearest-neighbor classification on CIFAR10. We compute the L2 distance in the latent space to define neighbors of each testing example. The CEBM representation more closely aligns with class labels as compared to a VAE, as well as when compared to pixel-based and IGEBM-based baselines (additional results in Appendix~\ref{appendix-sec:confuion matrices}).}
+% \end{subfigure}
+% \caption{(\emph{Left}) Samples from CIFAR-10 along with the top 2-nearest-neighbors in pixel space, the latent space of a VAE, and the latent space of a CEBM. (\emph{Right}) Confusion matrices of 1-nearest-neighbor classification on CIFAR-10 based on L2 distance in the latent space. On average, CEBM representations more closely align with class labels compared to VAE.}
+% \label{fig:nearest-neighbours}
+% %\vspace*{-2.0ex}
+% \end{figure*}
+
+
+
 
 \setlength{\tabcolsep}{4.5pt}
 \begin{table*}[!t]
@@ -896,11 +967,6 @@ In Figure~\ref{fig:nearest-neighbours} (right), we quantify this agreement by co
 
 
 % \vspace*{-1.0ex}
-\subsection{Out-of-Distribution Detection}\label{sec:exp:ood}
-% \vspace*{-1.0ex}
-
-EBMs have formed the basis for encouraging results in out-of-distribution (OOD) detection~\cite{du2019implicit,grathwohl2019your}. While it is not our focus in this paper, OOD detection can serve as an additional benchmark that helps evaluate whether a learned model accurately characterizes the data distribution. In Appendix~\ref{appendix-sec:ood-detection}, we report results in terms of two metrics. The first is the area under the receiver-operator curve (AUROC) when thresholding the log marginal $\log p_\q(x)$.  The second is the gradient-based score function proposed by ~\citet{grathwohl2019your}. CEBMs results for OOD detection in most cases improve upon VAE and IGEBM baselines.
-
 
 
 % \vspace*{-1.0ex}
@@ -911,6 +977,11 @@ To evaluate performance in settings where few labels are available, we train a l
 
 We report the classification accuracy on the test set in Table~\ref{tab:few-shot classification}. We can see that that CEBMs overall achieve a higher accuracy compared to VAEs in particular for CIFAR-10 and SVHN where the pixel distance is not good measure for similarity. Moreover, we observe that CEBMs outperform IGEBM which suggest that the inductive biases in CEBMs can lead to increased performance in downstream tasks. 
 
+
+\subsection{Out-of-Distribution Detection}\label{sec:exp:ood}
+% \vspace*{-1.0ex}
+
+EBMs have formed the basis for encouraging results in out-of-distribution (OOD) detection~\cite{du2019implicit,grathwohl2019your}. While it is not our focus in this paper, OOD detection can serve as an additional benchmark that helps evaluate whether a learned model accurately characterizes the data distribution. In Appendix~\ref{appendix-sec:ood-detection}, we report results in terms of two metrics. The first is the area under the receiver-operator curve (AUROC) when thresholding the log marginal $\log p_\q(x)$.  The second is the gradient-based score function proposed by ~\citet{grathwohl2019your}. CEBMs results for OOD detection in most cases improve upon VAE and IGEBM baselines.
 
 
 
