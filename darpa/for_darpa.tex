@@ -151,9 +151,9 @@ Despite steady progress, work on disentangled representations and structured VAE
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{figures/cebm_overview_v3.pdf}
+\includegraphics[width=\textwidth]{figures/cebm_overview_v2.pdf}
 \vspace*{-4ex}
-\caption{Comparison between the generative model in a VAE and CEBM. (\emph{Left}) In a VAE, the generator reconstructs an image $x$ by mapping the corresponding latent variable $z$ to pixel space to get a reconstruction $\mu_\q(z)$. The likelihood $p_\theta(x | z)$, defined by sufficient statistics $t(\cdot)$ and natural parameter $\eta(\cdot)$, can be interpreted as measuring the agreement between the image $x$ and its reconstruction $\mu_\q(z)$ in pixel space. The posterior in VAE is intractable and is approximated by an encoder network $q_\f(z|x)$. (\emph{Right}) A CEBM defines an energy-based likelihood that is defined by the neural sufficient statistics $t_\theta(\cdot)$ which serves as an encoder that maps $x$ to an intermediate-level representation, and the natural parameters $\eta(\cdot)$ that maps the latent variable $z$ to the same level. The likelihood $p_\theta(x | z)$ in a CEBM can be interpreted as measuring the agreement between $x$ and $z$ at their intermediate level of representations. In contrast to a VAE, the posterior in CEBM is tractable and is determined by sufficient statistics $t_\q(x)$ and natural parameters $\lambda_{\text{prior}}$.}
+\caption{Comparison between the likelihood in a VAE and the likelihood in a CEBM, both of which are written in form of exponential family. (\emph{Left}) In a VAE, the generator reconstructs an image $x$ from data by mapping its latent variable $z$ to the pixel space. The likelihood $p_\theta(x | z)$, defined by sufficient statistics $t(\cdot)$ and natural parameter $\eta(\cdot)$, measures the agreement between the image $x$ and its reconstruction $\mu_\theta(z)$ in pixel space. (\emph{Right}) In contrast, a CEBM defines an energy-based likelihood, where the neural sufficient statistics $t_\theta(\cdot)$ serves as an encoder which maps $x$ to intermediate-level representation, and the natural parameters $\eta(\cdot)$ will map the latent variable $z$ to the same level of representation. This likelihood $p_\theta(x | z)$ will measure the agreement between $x$ and $z$ at their intermediate level of representations.}
 \label{fig:overview}
 \end{figure*}
 
@@ -263,7 +263,7 @@ Our goal is to learn a model $p_\q(x)$ that is close to the true data distributi
 &= \mathbb{E}_{p_\text{data}(x)}[-E_\q (x)] - \log Z_\q.
 \end{align}
 The key difficulty when performing maximum likelihood estimation is that computing the gradient of $\log Z_\q$ is intractable. A common strategy is to express this gradient as an expectation with respect to $p_\q(x)$,
-\begin{align}
+\begin{align*}
     \nabla \log Z_\q 
     &= 
     \mathbb{E}_{p_\q(x')}
@@ -271,7 +271,7 @@ The key difficulty when performing maximum likelihood estimation is that computi
     -\nabla_\q E_\q(x')
     \right]
     ,
-\end{align}
+\end{align*}
 which means that the gradient of $\mathcal{L}(\q)$ has the form
 \begin{align*}
 %\label{eq:grad-ebm}
@@ -346,24 +346,24 @@ An exponential family is a set of distributions whose probability density functi
 where $h(\cdot)$ is a base measure, $\eta$ is a vector of natural parameters , $t(\cdot)$ is a vector of sufficient statistics, and $A(\cdot)$ is a log normalizer.
 
 If a likelihood belongs to an exponential family, then there exists a conjugate prior with the same form
-\begin{align}
+\begin{align*}
     p(\eta \mid \lambda) 
     &= 
     h_0(\eta) \exp \big\{ 
     t_0(\eta)^\top \lambda
     - A_0(\lambda) \big\}.
-\end{align}   
+\end{align*}   
 This prior is conjugate to the likelihood in~\ref{eq:exponential-family} when its vector of sufficient statistics comprises the natural parameters and the log-normalizer of the likelihood,
-\begin{align}
+\begin{align*}
 % \label{eq:sufficient-stats}
     t_0(\eta) &= \big[ \eta, - A(\eta) \big], 
     &
     \lambda &= \big[ \lambda_1, \lambda_2 \big].
-\end{align}
+\end{align*}
 The convenient property of conjugate exponential families is that both the marginal likelihood $p(x \mid \lambda)$ and the posterior $p(\eta \mid x, \lambda)$ are tractable. The reason is that the joint probability has the form
 \begin{align*}
     & p(x, \eta \mid \lambda) = p(x \mid \eta) \: p(\eta \mid \lambda)\\
-    & 
+    & \quad
     =h(x)h_0(\eta)\exp \big\{ 
       \eta^\top \! \big(\lambda_1 \!+\! t(x)\big) 
       -
@@ -390,13 +390,13 @@ This shows that the posterior is in the same exponential family as the prior, an
     \end{split}
 \end{align}
 While conjugate exponential families have desirable properties, the class of tractable exponential families is limited. This is because it is in general not possible to compute the log normalizer for an arbitrary base measure $h(x)$ and a vector of sufficient statistics $t(x)$, which requires solving an integral with respect to $x$,
-\begin{align}
+\begin{align*}
     A(\eta) = \log \int dx \: h(x) \exp \big\{ t(x)^\top \eta  \}.
-\end{align}
+\end{align*}
 Similarly, not every exponential family has a tractable conjugate prior, since we need to be able to solve the integral for the log normalizer 
-\begin{align}
+\begin{align*}
     A_0(\lambda) = \log \int d\eta \: h_0(\eta) \exp \big\{ \eta^\top\lambda_1 - A(\eta)\lambda_2 \big\}.
-\end{align}
+\end{align*}
 
 
 %
@@ -431,10 +431,9 @@ Concretely, we propose to consider models of the form
 \end{align}
 where the energy function takes a form that is inspired by exponential family distributions
 \begin{align}
-    \label{eq:cebm-energy}
     E_\q(x,z) = -t_\q(x)^\top \eta(z) - b(z).
 \end{align}
-In this energy function, $t_\q: \mathbb{R}^D \to \mathbb{R}^H$ plays the role of an encoder, which maps data to a vector of sufficient statistics. The function $\eta: \mathbb{R}^K \to \mathbb{R}^H$ decodes latent variables to a vector of natural parameters in an intermediate space of dimension H. The function $b: \mathbb{R}^K \to \mathbb{R}$ serves as an inductive bias that plays a role analogous to the prior. With this formulation, the generative model in a VAE can be recovered as a special case  that with this formulation (see Appendix~\ref{app:sec:vae}).
+In this energy function, $t_\q: \mathbb{R}^D \to \mathbb{R}^H$ plays the role of an encoder, which maps data to a vector of sufficient statistics. The function $\eta: \mathbb{R}^K \to \mathbb{R}^H$ decodes latent variables to a vector of natural parameters in an intermediate space of dimension H. The function $b: \mathbb{R}^K \to \mathbb{R}$ serves as an inductive bias that plays a role analogous to the prior. We note that the generative model in a VAE can be recovered as a special case  that with this formulation (see Appendix~\ref{app:sec:vae}).
 
 %Our intuition is that controlling the dimension $H$ may allow us to define energy functions that reflect agreement at a higher or lower level of representation. 
 
@@ -457,18 +456,18 @@ In this energy function, $t_\q: \mathbb{R}^D \to \mathbb{R}^H$ plays the role of
 %
 % More generally, we can define the energy in terms of an encoder network $t_\theta(x)$ that maps high-dimensional data to a low-dimensional vector of sufficient statistics. 
 
-We will consider a bias $b(z) = \log p(z \mid \lambda)$ in form of a tractable exponential family with sufficient statistics $\eta(z)$\footnote{We drop the base measure for the rest of paper to avoid clutter.}, 
+We will consider a bias $b(z) = \log p(z \mid \lambda)$ in form of a tractable exponential family with sufficient statistics $\eta(z)$, 
 \begin{align}
-    b(z) = \eta(z)^\top \lambda - A(\lambda).
+    b(z) = \log h(z) + \eta(z)^\top \lambda - A(\lambda).
 \end{align}
 We can then express the energy function as
 \begin{align}
-    E_\q(x, z) = -\big(\lambda + t_\q(x) \big)^\top \eta(z) + A(\lambda).
+    E_\q(x, z)  &= -\log h(z) - \big(\lambda + t_\q(x) \big)^\top \eta(z) + A(\lambda).
 \end{align}
-This form of the energy function has a very convenient property: It corresponds to a model $p_\theta(x,z)$ in which the posterior $p_\theta(z \mid x)$ is tractable. To see this, we make a substitution $\tilde{\lambda} = \lambda + t_\q(x)$ analogous to the one in Equation~\ref{eq:cef-joint}, which allows us to express the energy $E_\q(x, z)$ as
-\begin{align}
-    -\big(\eta(z)^\top \tilde{\lambda}  - A(\tilde{\lambda}) \big) -\big(A(\tilde{\lambda}) - A(\lambda) \big).
-\end{align}
+This form of the energy function has a very convenient property: It corresponds to a model $p_\theta(x,z)$ in which the posterior $p_\theta(z \mid x)$ is tractable. To see this, we make a substitution $\tilde{\lambda} = \lambda + t_\q(x)$ analogous to the one in Equation~\ref{eq:cef-joint}, which allows us to express the energy as
+\begin{align*}
+    -\big(\log h(z) + \eta_\q(z)^\top \tilde{\lambda}  - A(\tilde{\lambda}) \big) -\big(A(\tilde{\lambda}) - A(\lambda) \big) .
+\end{align*}
 We now see that we can factorize the corresponding density $p_\q(x,z)$ as
 \begin{align}
     p_\q(x,z \mid \lambda) 
@@ -479,7 +478,6 @@ which yields a posterior and marginal that are analogous the distributions in Eq
 \begin{align}
     p_\q(z \mid x, \lambda) &= p(z \mid \lambda + t_\q(x)),\\
     p_\q(x \mid \lambda) &= \frac{1}{Z_\q} \exp\big\{ A\big(\lambda + t_\q(x) \big) - A\big(\lambda\big) \big\}.
-    \label{eq:cebm-marginal}
 \end{align}
 In other words, the joint density of this model factorizes into a tractable posterior $p_\theta(z \mid x, \lambda)$ and an intractable energy-based marginal likelihood $p_\theta(x \mid \lambda)$. This posterior is conjugate, in the sense that it is in the same exponential family as the bias. For this reason, we refer to this class of models as conjugate energy-based models (CEBMs).
 
@@ -512,14 +510,14 @@ In other words, the term $b(z)$ defines an inductive bias, but this bias is diff
 
 %The bias in a VAE (Equation~\ref{eq:vae-bias}) differs from the bias in a CEBM in that it contains the log-normalizer of the likelihood in addition to the logarithm of the prior. In a CEBM we cannot compute this log-normalizer, since the integral with respect to $x$ will be intractable. For this reason, the term $b_\q(z)$ acts as an inductive bias, but this inductive bias does not constrain the learned representation in the same way as in a VAE, where the prior $p_\q(z)$ is tractable by construction. 
 
-In principle the bias in a CEBM can take the form of any exponential family distribution. Since products of exponential families are also in the exponential family, this covers a broad range of possible biases. For purposes of evaluation in this paper, we will constrain ourselves to two cases:  
+In principle the bias in a CEBM can take the form of any exponential family distribution. Since products of exponential families are also in the exponential family, this covers a broad range of possible biases. For purposes of evaluation in this paper, we will constrain ourselves to two cases\footnote{We drop the base measure $h(z)$ from the equations in the rest of paper to avoid clutter.}:  
 
 % for simplicity, eta in our case is not a neural network but a deterministic transformation between z and variables. 
 
 \paragraph{1. Spherical Gaussian.} As a bias that is analogous to the standard prior in VAEs, we consider a spherical Gaussian with fixed hyperparameters $(\mu,\sigma)=(0,1)$ for each dimension of $z \in \mathbb{R}^K$,
-\begin{align*}
+\begin{align}
     b(z) = \sum_{k} \big( \eta(z_k)^\top \lambda - A(\lambda) \big).
-\end{align*}
+\end{align}
 Each term has sufficient statistics $\eta(z_k) = (z_k, z_k^2)$ and natural parameters
 \begin{align*}
   \lambda = 
@@ -554,9 +552,9 @@ where $\tilde{\lambda}_k = \lambda + t_{\q,k}(x)$ and the log normalizer is
 \end{align*}
 
 \paragraph{2. Mixture of Gaussians.} In our experiments, we will consider datasets that are normally used for classification. These datasets, by design, exhibit multimodal structure that we would like to see reflected in the learned representation. As an inductive bias that is amenable to uncovering this structure, we will consider a bias in the form of a mixture of $L$ Gaussians,
-\begin{align*}
+\begin{align}
     b(y,z) = \sum_{k,l} I[y=l] \big( \eta(z_k)^\top \lambda_{l,k} - A(\lambda_{l,k}) \big).
-\end{align*}
+\end{align}
 Here $z \in \mathbb{R}^K$ is a vector of features and $y \in \{1, \dots, L\}$ is a categorical assignment variable. The bias for each component $l$ is a spherical Gaussian with hyperparameters $\lambda_{l,k}$ for each dimension $k$. Again using the notation $\tilde{\lambda}_{l,k} = \lambda_{l,k} + t_{\q,l,k}(x)$ to refer to the posterior parameters, then we obtain an energy
 \begin{align*}
     E_\q(x,y,z) =
@@ -639,19 +637,43 @@ We optimize this marginal with respect hyperaparameters $\lambda$ as well as the
 % \vspace*{-0.5ex}
 \section{Related Work}
 \label{sec:related-work}
-% \vspace*{-1.5ex}
+\vspace*{-1.0ex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \comment{
-% Energy-based models are popular in machine learning and can encompass a wide variety of models including basic classifiers, Markov Random Fields (MRF,~\cite{}), factor graphs, neural networks, exponential family, and Boltzmann machines. See~\cite{lecun2006tutorial} for a comprehensive tutorial on energy-based models. 
+\comment{
+Energy-based models are popular in machine learning and can encompass a wide variety of models including basic classifiers, Markov random fields, factor graphs, neural networks, exponential family, and Boltzmann machines. See~\cite{lecun2006tutorial} for a comprehensive tutorial on energy-based models. 
 
-% In their general form, which can include latent variables, EBMs such as the ones we explore in this paper, as well as earlier models such as restricted Boltzmann machines (RBMs), are notoriously difficult to train.  Existing training methods employ Markov chain Monte Carlo (MCMC) sampling and include contrastive divergence (CD), its persistent variant (PCD) which is also known as stochastic maximum likelihood (SML), as well as rank-based methods \cite{hinton02training, tieleman2008training, younes1989parametric}.  Previous work examines and compares various ways of training EBMs \cite{swersky2011autoencoders}.
-
-% Energy-based models \cite{lecun2006tutorial} have a long history in machine learning, in the sense that they admit many undirected models as special cases, including Markov random fields, factor graphs, and restricted Boltzmann machines (RBMs).
-% }
+In their general form, which can include latent variables, EBMs such as the ones we explore in this paper, as well as earlier models such as restricted Boltzmann machines (RBMs), are notoriously difficult to train.  Existing training methods employ Markov chain Monte Carlo (MCMC) sampling and include contrastive divergence (CD), its persistent variant (PCD) which is also known as stochastic maximum likelihood (SML), as well as rank-based methods \cite{hinton02training, tieleman2008training, younes1989parametric}.  Previous work examines and compares various ways of training EBMs \cite{swersky2011autoencoders}.
+}
 
 
-% Our work focus on learning latent energy-based models in an unsupervised manner. 
+Energy-based models \cite{lecun2006tutorial} have a long history in machine learning, in the sense that they admit many undirected models as special cases, including Markov random fields, factor graphs, and restricted Boltzmann machines (RBMs). Recent work on EBMs has shown that it is possible to use deep neural network as energy functions, and that it is possible to use Langevin methods to generate realistic samples from learned models \cite{du2019implicit,xie2016theory}. Work by \citet{grathwohl2019your} interprets classifiers through the lens of energy-based models. \citet{liu2020hybrid} propose a similar model where the objective combines a discriminative conditional and a generative conditional conditional distribution. %\citet{yu2020training} show that EBMs can be trained not only with KL but with other f-divergences as well. 
+
+
+\citet{nijkamp2019anatomy, nijkamp2019learning} performed a comprehensive analysis of convergence in recent EBMs, where they study a variety of factors such as MCMC chain initialization, network, and optimizer. They identify that critical factors for diagnosing these models differ between the energy of positive and negative samples. Many of these findings were helpful during the training and evaluation of EBMs in our work. The same authors show that it is sometimes possible to learn a valid model even generate realistic samples even with a non-convergent, non-mixing short-run MCMC sampling  \cite{nijkamp2019learning}. 
+
+% %%%%%Hao's Edit Starts%%%%%%%
+% % talked about all ancient work before I was born...
+% The first modern EBMs with energy functions as deep neural networks that were able to generate realistic samples with Langevin sampling were introduced by \citet{du2019implicit,xie2016theory}.
+% \citet{nijkamp2019anatomy, nijkamp2019learning}
+% %%%%%Hao's Edit Ends%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \vspace*{-0.5ex}
+\section{Experiments}
+\label{sec:experiments}
+\vspace*{-1.0ex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% \begin{figure}[!t]
+% \centering
+% \includegraphics[width=\linewidth]{figures/confusion_matrix_22row_cifar10.pdf}
+% \vspace*{-3.0ex}
+% \caption{}
+% \vspace*{-2.0ex}
+% \label{fig:cebm-confusion-matrices}
+% \end{figure}
 
 \begin{figure*}[!t]
 \centering
@@ -665,89 +687,11 @@ We optimize this marginal with respect hyperaparameters $\lambda$ as well as the
 \label{fig:generated-samples}
 \end{figure*}
 
-
-
-
-\paragraph{Energy-Based Latent Variable Models.} The general idea of using EBMs for representation learning is by no means new; it has a long history in the context of restricted Boltzmann machines (RBMs,~\citep{smolensky1986information,hinton2002training}), deep belief nets (DBNs,~\cite{hinton2006fast}), and deep Boltzmann machines (DBMs,~\citep{salakhutdinov2009deep}). The idea of extending RBMs in the exponential family and exploiting conjugacy to yield a tractable posterior is also not new and has been introduced in Exponential Family Harmonium~\citep{welling2005exponential}. Our motivation with the present work is to design a class of energy-based models that (1) are able to incorporate inductive biases in latent space, (2) model the data an intermediate level of representation using \emph{non-linear} transformations (unlike RBM-based models). The non-linearity of the relationship between the data and latent variables involves a trade-off; While it allows us to learn more complex distributions, it results in the likelihood no longer being tractable. We provide a more detailed discussion regarding the connection of our work to this class of models in Appendix~\ref{app:sec:rbm}.  
-
-
-% \citet{welling2005exponential} propose a latent Harmonium model also in form of exponential family, where the joint density factorizes into a tractable posterior and a marginal. While this work shares with us the same property of tractable posterior, their model assumes one layer of hidden units with a bilinear energy function. 
-
-% retain the desirable features of VAEs while addressing what we see as one of their main weaknesses: We would like incorporate inductive biases, but model the data at an intermediate level of representation that does not necessarily encode all features of an image at the pixel level. 
-
-% EBMs~\cite{hinton2002training, lecun2006tutorial} is a broad class of probabilistic models in machine learning. Restricted Boltzmann Machines (RBMs,~\citet{hinton2012practical}), initially known as Harmoniums~\cite{smolensky1986information}, is one commonly used class of EBMs for representations learning. 
-
-
-
-% \cite{nijkamp2019learning}. 
-
-
-% \citet{gao2020flow} propose a flow-based EBM and interpret features from the top layer of the neural networks as latent representations.
-% \paragraph{}
-
-% Energy-based models \cite{lecun2006tutorial} have a long history in machine learning, in the sense that they admit many undirected models as special cases, including Markov random fields, factor graphs, and restricted Boltzmann machines (RBMs). Recent work on EBMs has shown that it is possible to use deep neural network as energy functions, and that it is possible to use Langevin methods to generate realistic samples from learned models \cite{du2019implicit,xie2016theory}. Work by \citet{grathwohl2019your} interprets classifiers through the lens of energy-based models. \citet{liu2020hybrid} propose a similar model where the objective combines a discriminative conditional and a generative conditional conditional distribution
-
-% Recent work on EBMs has shown that it is possible to use deep neural network as energy functions, and that it is possible to use Langevin methods to generate realistic samples from learned models \cite{xie2016theory,nijkamp2019anatomy, nijkamp2019learning, du2019implicit}.
-
-% Recent work has shown that EBMs with convolutional energy functions can accurately model distributions over images, in the sense that SGLD produces realistic samples \citep{nijkamp2019anatomy, nijkamp2019learning, du2019implicit,xie2016theory}. 
-
-\paragraph{EBMs for Image Modelling.} Recent work has shown that EBMs with convolutional energy functions can accurately model distributions over images, yielding competitive results in image generation~\citep{xie2016theory,nijkamp2019anatomy,nijkamp2019learning, du2019implicit}. This line of work only focuses on generation and therefore do not consider incorporating latent variables in their models unlike our work. There has also been some work discussing the connection between EBMs and other successful deep learning models for images. For example, \citet{grathwohl2019your,liu2020hybrid} proposed to interpret a classifier as an EBM that defines a joint energy function on the data and labels. Similarly, \citet{che_your_2020} interprets a GAN as an EBM defined by both the generator and discriminator. Another line of work that is similar to ours in spirit is employing EBMs as priors on the latent space in deep generative models~\citep{pang2020learning,aneja2020ncp}. These models however, unlike our work, require a generator. \citet{nijkamp2019anatomy,nijkamp2019learning} performed a comprehensive analysis of convergence in recent EBMs, where they study a variety of factors such as MCMC chain initialization, network, and optimizer. They identify that a key factor for diagnosing these models is the difference between the energy of positive and negative samples. Many of these findings were helpful during the training and evaluation of EBMs in our work. 
-
-% The same authors show that it is sometimes possible to learn a valid model even generate realistic samples even with a non-convergent, non-mixing short-run MCMC sampling 
-
-
-
-
-% \citet{khemakhem2020ice} propose an EBM and a latent model in form of exponential family, for learning identifiable representations, i.e. for one dataset, the learned feature spaces by different encoders will be unique up to certain transformations. In contrast, we are interested in learning features that can represent meaningful factors of variations, which will be useful for a broad range of downstream tasks.  
-
-% There has also been some work to address the instability problem in PCD~\citep{du2020improved}.
-
-% Our motivation with the present work is to design a class of energy-based models that retain the desirable features of VAEs while addressing what we see as one of their main weaknesses: We would like incorporate inductive biases, but model the data at an intermediate level of representation that does not necessarily encode all features of an image at the pixel level. 
-
-\paragraph{Training EBMs.} There is a large body of work on training unnormalized models. While our work as well as many others use PCD, we note that it is not the only approach for training EBMs. An alternative class of methods is Noise Contrastive Estimation (NCE)~\citep{gutmann2010noise} in which we define a noise model and learn by discriminating between data and noise. An example of this is \citet{gao2020flow}, where the authors pre-train a flow that acts as the noise model for training EBMs with NCE. Another popular approach is score matching (SM,~\citep{hyvarinen2005estimation,vincent2011connection,song2020sliced,bao_bi-level_2020}), in which we match the gradients of log probability density of the model and data distribution. Lastly, there are adversarial methods for avoiding MCMC sampling during MLE, where we introduce a variational distribution $q_{\f}(x)$ that we train alongside the model with a maximin objective~\citep{grathwohl2021no}. We refer the readers to~\citet{song2021train} for a more comprehensive study of training methods for EBMs. Note that because CEBMs can marginalize over $z$ to get the marginal, all of the discussed methods are available for training, and therefore are orthogonal to our work.   
-
-
-
-
-
- 
-
-
-
-% \paragraph{EBMs for Image Modelling.}  Recent work on EBMs has shown that it is possible to use deep neural network as energy functions, and that it is possible to use Langevin methods to generate realistic samples from learned models \cite{du2019implicit,xie2016theory}. Work by \citet{grathwohl2019your} interprets classifiers through the lens of energy-based models. \citet{liu2020hybrid} propose a similar model where the objective combines a discriminative conditional and a generative conditional conditional distribution. %\citet{yu2020training} show that EBMs can be trained not only with KL but with other f-divergences as well. 
-
-
-
-% %%%%%Hao's Edit Starts%%%%%%%
-% % talked about all ancient work before I was born...
-% The first modern EBMs with energy functions as deep neural networks that were able to generate realistic samples with Langevin sampling were introduced by \citet{du2019implicit,xie2016theory}.
-% \citet{nijkamp2019anatomy, nijkamp2019learning}
-% %%%%%Hao's Edit Ends%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\vspace*{-0.5ex}
-\section{Experiments}
-\label{sec:experiments}
-% \vspace*{-1.5ex}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-% \begin{figure}[!t]
-% \centering
-% \includegraphics[width=\linewidth]{figures/confusion_matrix_22row_cifar10.pdf}
-% \vspace*{-3.0ex}
-% \caption{}
-% \vspace*{-2.0ex}
-% \label{fig:cebm-confusion-matrices}
-% \end{figure}
-
-
-
 Our experiments evaluate to what extent CEBMs can learn representations that encode meaningful factors of variation, whilst discarding details about the input that we would consider noise. This question is difficult to answer in generality, and in some sense not well-posed; whether a factor of variation should be considered signal or noise can depend on context. For this reason, our experiments primarily focus on the extent to which representations in CEBMs can recover the multimodal structure in datasets that are normally used for classification. %(MNIST~\cite{lecun1998gradient}, Fashion-MNIST~\cite{xiao2017fashion}, SVHN~\cite{netzer2011reading}, and CIFAR-10~\cite{krizhevsky2009learning}). 
 While class labels are an imperfect proxy, in the sense that they do not reflect all factors of variation that we may want to encode in a representation, they provide a means of quantifying differences between representations that were learned in an unsupervised manner. 
 
-We begin with a qualitative evaluation by visualizing samples and latent representation. We then demonstrate that learned representations align with class structure, in the sense that nearest neighbors in the latent space are more likely to belong to the same class (section~\ref{sec:exp:quality}). Next, we evaluate performance on out-of-distribution detection (OOD) tasks which, although not our primary focus in this paper, are a common use case for EBMs (Section~\ref{sec:exp:ood}).  %In the second experiment, we perform semi-supervised classification  (Section~\ref{sec:exp:semi}). 
-Finally, to quantify the extent to which the learned representations can improve performance in downstream task, we measure low-label classification accuracy for representations that were pre-trained without supervision (Section~\ref{sec:exp:fewshots}).
+We begin with a qualitative evaluation by visualizing samples and latent representation. We then demonstrate that learned representations align with class structure, in the sense that nearest neighbors in the latent space are more likely to belong to the same class (section~\ref{sec:exp:quality}). To quantify the extent to which the learned representations can improve performance in downstream task, we measure low-label classification accuracy for representations that were pre-trained without supervision (Section~\ref{sec:exp:fewshots}). %In the second experiment, we perform semi-supervised classification  (Section~\ref{sec:exp:semi}). 
+Finally, we evaluate performance on out-of-distribution detection (OOD) tasks which, although not our primary focus in this paper, are a common use case for EBMs (Section~\ref{sec:exp:ood}).
 
 %We design our experiments in an attempt to answer the following question: can CEBMs %learn a semantically more meaningful notion of representation compared to VAEs and %can this representation be used for downstream tasks such as classification? As a %proof of concept, we first visualize a few generated samples with SGLD to confirm %that we can successfully train CEBMs. Next, we examine the similarity between a few %random samples and their nearest neighbours in latent space. Lastly, we perform %classification on the latent code as an assessment of the quality of latent space. 
 
@@ -792,7 +736,7 @@ Finally, to quantify the extent to which the learned representations can improve
 
 \paragraph{Architectures.} CEBMs employ an encoder network $t_\q(x)$ in the form of 4-layer CNN (which is proposed by~\citet{nijkamp2019anatomy}), followed by an MLP output layer. For IGEBMs, we add one extra MLP as its final layer which outputs a scalar value. VAEs use the same encoder network as the CEBMs, and use a decoder network in form of an MLP followed by 4-layer CNN. See Appendix~\ref{appendix-architectures} for architecture details.
 
-\paragraph{Optimization.} In CEBMs and VAEs we choose the dimension of latent variables to be 128. We found that the optimization becomes difficult with smaller dimensions. For training stability, we L2 regularize energy magnitudes (proposed by~\citet{du2019implicit}). We train our models using 60 SGLD steps, 90k gradient steps, batch size 128, Adam optimizer with learning rate 1e-4. See Appendix~\ref{app:sec:training-details} for training details.
+\paragraph{Optimization.} In CEBMs and VAEs we choose the dimension of latent variables to be 128. We found that the optimization becomes difficult with smaller dimensions. For training stability, we L2 regularize energy magnitudes (proposed by~\citet{du2019implicit}). We train our models using 60 SGLD steps, 90k gradient steps, batch size 128, Adam optimizer with learning rate 1e-4. See the Appendix for training details.
 
 \paragraph{Hyperparameter Sensitivity.} As observed in previous work~\cite{du2019implicit,grathwohl2019your}, training EBMs can be a challenging task that often requires a thorough hyperparameter search. We found that the choices of activation function, learning rate, number of SGLD steps, and regularization will all affect training stability. Models regularly diverge during training, and it is difficult to perform diagnostics given that $\log p_{\q}(x)$ cannot be computed. As suggested by~\cite{nijkamp2019anatomy}, we found checking the difference in energy between data and model samples to be helpful for verifying stable training. We also note that in general, we observed a trade-off between sample quality and the predictive power of latent variables in our experiments. We leave investigation of the source of this trade-off to future work, but we suspect that this is because SGLD is having more difficulty to converge when the latent space is more disjoint.  
 
@@ -814,11 +758,11 @@ Finally, to quantify the extent to which the learned representations can improve
 
 \begin{figure*}[!t]
 \centering
-\begin{subfigure}{0.4\textwidth}
+\begin{subfigure}{0.5\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figures/overview_figure.pdf}
 \end{subfigure}%%%
-\begin{subfigure}{0.55\textwidth}
+\begin{subfigure}{0.5\textwidth}
 \centering
 \includegraphics[width=\linewidth]{figures/confusion_matrix_22row_cifar10.pdf}
 % \caption{Confusion Matrices of 1-nearest-neighbor classification on CIFAR10. We compute the L2 distance in the latent space to define neighbors of each testing example. The CEBM representation more closely aligns with class labels as compared to a VAE, as well as when compared to pixel-based and IGEBM-based baselines (additional results in Appendix~\ref{appendix-sec:confuion matrices}).}
@@ -828,8 +772,30 @@ Finally, to quantify the extent to which the learned representations can improve
 %\vspace*{-2.0ex}
 \end{figure*}
 
-\setlength{\tabcolsep}{4.5pt}
+\setlength{\tabcolsep}{5pt}
 \begin{table*}[!t]
+\caption{Classification accuracy. We pre-train 5 unsupervised models (rows) on MNIST, Fashion-MNIST, CIFAR10, SVHN. Then we train logistic classifiers using 1, 10, 100 examples per class (i.e. shots) and the full training dataset. We report the testing classification accuracy, where CEBM outperforms the baselines.}
+\centering
+%\vspace*{-1.5ex}
+\begin{tabular}{l|cccc|cccc|cccc|cccc}
+\toprule
+ & \multicolumn{4}{c}{MNIST} & \multicolumn{4}{|c}{Fashion-MNIST} & \multicolumn{4}{|c}{CIFAR-10} & \multicolumn{4}{|c}{SVHN}\\
+Models & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ \\
+\midrule
+\midrule
+VAE & 42 & 85 & 92 & 95 & 41 & 63 & 72 & 81 & 16 & 22 & 31 & 38 & \textbf{13} & 13 & 16 & 36\\
+GMM-VAE & 53 & 86 & 93 & 97 & 49 & 68 & 79 & 84 & \textbf{19} & 23 & 33 & 39 & \textbf{13} & 14 & 23 & 56  \\
+\midrule
+IGEBM & 63 & 89 & 95 & 97 & 50 & 70 & 79 & 83 & 16 & 26 & 33 & 42 & 10 & 16 & 35 & 49\\
+CEBM & \textbf{67} & 89 & 95 & 97 & \textbf{52} & 70 & 77 & 83 & \textbf{19} & \textbf{30} & \textbf{42} & \textbf{52} & 12 & \textbf{25} & \textbf{48} & \textbf{70}\\
+CEBMM & \textbf{67} & \textbf{91} & \textbf{97} & \textbf{98} &\textbf{52} & \textbf{71} & \textbf{80} & \textbf{85} & 16 & 28 & \textbf{42} & 51 & 10 & 17 & 39 & 60 \\
+\bottomrule
+\end{tabular}
+\label{tab:few-shot classification}
+\end{table*}
+
+\setlength{\tabcolsep}{4.5pt}
+\begin{table*}[!h]
 \caption{AUROC scores in OOD Detection. We use $\log p_{\q}(\x)$ and $\| \nabla_{\x}\log p_{\q}(\x)\|$ as score functions.The left block shows results of the models trained on F-MNIST and tested on MNIST, E-MNIST, Constant (C); The right block shows results of the models trained on CIFAR-10 and tested on SVHN, Texture and Constant (C).}
 \centering
 \begin{tabular}{l|ccc|ccc||ccc|ccc}
@@ -847,19 +813,15 @@ CEBMM       & \textbf{.56} & \textbf{.56} & \textbf{.92} & .56 & .80 & .95     &
 \end{tabular}
 \label{tab:ood-detection}
 \end{table*}
-
-
 % \vspace*{-1.5ex}
 \subsection{Samples and Latent Space}
 \label{sec:exp:quality}
 % \vspace*{-1.5ex}
 % As with other EBMs~\cite{du2019implicit}, we can use SGLD to sample from CEBM. In Figures~\ref{fig:generated-samples} \&~\ref{fig:cebm-mnist}, we show generated samples from CEBM trained on different datasets by running 500 steps of SGLD. Even though the sample quality in CEBMs is far from state-of-the-art generative models, we observe that CEBMs do not suffer from blurriness as VAEs. Furthermore, these sample show that CEBMs are able to do a reasonable job at approximating the data distribution.
 
-We begin with a qualitative evaluation by visualizing samples from the model. 
-% Recent work has often focused on EBMs as an alternative to generative models~\cite{du2019implicit, nijkamp2019anatomy}, where it is natural evaluate model performance in terms of the the quality of generated samples. 
-While generation is not our intended use case in this paper, such samples do serve as a useful diagnostic, in the sense that they allow us to visually inspect what characteristics of the input data are captured by the learned representation. 
+Recent work has often focused on EBMs as an alternative to generative models~\cite{du2019implicit, nijkamp2019anatomy}, where it is natural evaluate model performance in temrs of the the quality of generated samples. While generation is not our intended use case in this paper, such samples do serve as a useful diagnostic, in the sense that they allow us to visually inspect what characteristics of the input data are captured by the learned representation. 
 
-Figures~\ref{fig:generated-samples} show samples from CEBMs trained on MNIST, Fashion-MNIST, SVHN, and CIFAR-10. We initialize the samples with uniform noise and run 500 SGLD steps. We observe that the distribution over images is diverse and captures the main characteristics of the dataset. Sample quality is roughly on par with samples from other EBMs \cite{nijkamp2019anatomy}, although it is possible to generate samples with higher visual quality using class-conditional EBMs~\cite{du2019implicit, grathwohl2019your, liu2020hybrid} (which assume access to labels).
+Figures~\ref{fig:generated-samples} show samples from CEBMs trained on MNIST, Fastion MNIST, SVHN, and CIFAR-10. We initialize from uniform noise and run 500 SGLD steps. The distribution over images is diverse and captures the main characteristics of the input data. Sample quality is roughly on par with samples from other EBMs \cite{nijkamp2019anatomy}, although it is possible to generate samples with higher visual quality using class-conditional EBMs~\cite{du2019implicit, grathwohl2019your, liu2020hybrid} (which assume access to labels).
 
 % For a quantitative assessment, we report Frechet Inception Distance (FID)~\cite{heusel2017gans} where we compare against Glow~\cite{kingma2018glow}, GMM-VAE~\cite{tomczak2018vae}, and IGEBM~\cite{du2019implicit}. As shown in Table~\ref{tab:fid-scores}, CEBM is able to achieves a competitive FID score. 
 
@@ -867,45 +829,14 @@ To assess to what extent the representation in CEBMs aligns with classes in each
 
 In Figure~\ref{fig:nearest-neighbours} (right), we quantify this agreement by computing the fraction of neighbors in each class conditioned on the class of the original image. We see a stronger alignment between classes and the latent representation in CEBMs, which is reflected in higher numbers on the diagonal of the matrix. On average, a fraction of 0.38 of the nearest neighbords are in the same class in the VAE, whereas 0.45 of the neighbors are in the same class in the CEBM. This suggest that the representation in CEBMs should lead to higher performance in downstream classification tasks. We will evaluate this performance in the next two experiments.
 
-% \setlength{\tabcolsep}{5pt}
-% \begin{table*}[!th]
-% \caption{Classification accuracy. We pre-train 5 unsupervised models (rows) on MNIST, Fashion-MNIST, CIFAR10, SVHN. Then we train logistic classifiers using 1, 10, 100 examples per class (i.e. shots) and the full training dataset. We report the classification accuracy on the test set. We observe that CEBM outperforms the baselines in most scenarios.}
-% \centering
-% %\vspace*{-1.5ex}
-% \begin{tabular}{l|cccc|cccc|cccc|cccc}
-% \toprule
-%  & \multicolumn{4}{c}{MNIST} & \multicolumn{4}{|c}{Fashion-MNIST} & \multicolumn{4}{|c}{CIFAR-10} & \multicolumn{4}{|c}{SVHN}\\
-% Models & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ & $1$ & $10$  & $100$ & $full$ \\
-% \midrule
-% \midrule
-% Classifier & 42 & 79 & 93 & 99 & 46 & 68 & 81 & 90 & 16 & 24 & 39 & 71 & 12 & 19 & 62 & 90\\
-% \midrule
-% VAE & 42 & 85 & 92 & 95 & 41 & 63 & 72 & 81 & 16 & 22 & 31 & 38 & \textbf{13} & 13 & 16 & 36\\
-% GMM-VAE & 53 & 86 & 93 & 97 & 49 & 68 & 79 & 84 & \textbf{19} & 23 & 33 & 39 & \textbf{13} & 14 & 23 & 56  \\
-% \midrule
-% GAN & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & --\\
-% GMM-GAN & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & --  \\
-% \midrule
-% IGEBM & 63 & 89 & 95 & 97 & 50 & 70 & 79 & 83 & 16 & 26 & 33 & 42 & 10 & 16 & 35 & 49\\
-% CEBM & \textbf{67} & 89 & 95 & 97 & \textbf{52} & 70 & 77 & 83 & \textbf{19} & \textbf{30} & \textbf{42} & \textbf{52} & 12 & \textbf{25} & \textbf{48} & \textbf{70}\\
-% CEBMM & \textbf{67} & \textbf{91} & \textbf{97} & \textbf{98} &\textbf{52} & \textbf{71} & \textbf{80} & \textbf{85} & 16 & 28 & \textbf{42} & 51 & 10 & 17 & 39 & 60 \\
-% \bottomrule
-% \end{tabular}
-% \label{tab:few-shot classification}
-% \end{table*}
-
-
-% \vspace*{-1.0ex}
-\subsection{Out-of-Distribution Detection}\label{sec:exp:ood}
-% \vspace*{-1.0ex}
-
-EBMs have formed the basis for encouraging results in out-of-distribution (OOD) detection~\cite{du2019implicit,grathwohl2019your}. While it is not our focus in this paper, OOD detection can serve as an additional benchmark that helps evaluate whether a learned model accurately characterizes the data distribution. In Appendix~\ref{appendix-sec:ood-detection}, we report results in terms of two metrics. The first is the area under the receiver-operator curve (AUROC) when thresholding the log marginal $\log p_\q(x)$.  The second is the gradient-based score function proposed by ~\citet{grathwohl2019your}. CEBMs results for OOD detection in most cases improve upon VAE and IGEBM baselines.
-
-
-
-% \vspace*{-1.0ex}
+\vspace*{-1.0ex}
 \subsection{Few-label classification}\label{sec:exp:fewshots}
-% \vspace*{-1.0ex}
+\vspace*{-1.0ex}
+
+\comment{
+ssd asdasds asdsa 
+% \end{comment}
+}
 
 To evaluate performance in settings where few labels are available, we train a logistic classifier using $1, 10, 100$ examples per class, as well as the full training dataset. We compare CEBMs against the  IGEBM~\cite{du2019implicit}, a standard VAE  with the spherical Gaussian prior, and the GMM-VAE~\cite{tomczak2018vae} where the prior is a mixture of Gaussians. As discussed in Section~\ref{sec:background}, IGEBM does not have an explicit representation. In order to compare against IGEBM, we remove the last layer (which outputs the energy) and use the resulting intermediate representation as the latent code. 
 
@@ -950,7 +881,61 @@ We report the classification accuracy on the test set in Table~\ref{tab:few-shot
 % \label{tab:ood-detection}
 % \end{table}
 
+\comment{
 
+\begin{table}[!b]
+\centering
+\caption{Classification results from Semi-supervised objectives trained with 10, 100, 1000, and 5000 labelled examples on MNIST and SVHN.}
+\begin{tabular}{c|l|cccc}
+\toprule
+         Datasets &  Models  &   10      & 100       & 1000      & 5000 \\
+\midrule
+% \multicolumn{5}{c}{MNIST} \\
+\midrule
+\multirow{2}{*}{MNIST} & M2 & 75 & 89 & 96 & 97\\
+                      & SS-CEBM & 80 & 95 & 98 & 99 \\
+\midrule
+% \multicolumn{5}{c}{SVHN} \\
+\midrule
+\multirow{2}{*}{SVHN} & M2 & 21 & 34 & 46 & 55 \\
+                      & SS-CEBM & 21 & 33 & 47 & 63 \\
+\bottomrule
+\end{tabular}
+\label{tab:ssl}
+\end{table}
+
+\subsection{Semi-Supervised Learning}\label{sec:exp:semi}
+
+In the previous experiment, we evaluated classification performance in a setting where no labels are available during training, and no fine-tuning is performed when training the downstream classifier. As a second experiment, we test whether CEBMs can also improve performance in semi-supervised settings~\cite{kingma2014semisupervised,siddharth2017learning,lin2020improving}, in which a limited number of labels are available during training. To do so, we consider model variants that define a distribution $p_\q(x,y,z)$, in which the label is a latent variable. We then maximize the joint distribution $p_\q(x,y)$ for supervised data and the marginal $p_\q(x)$ for unsupervised data. For further details on this objective, see the Appendix. 
+% \begin{equation}
+% \E_{p_{\text{data}}(x)}\left[ \log p_{\q}(x)\right] + \E_{p_{\text{data}}(x,y)}\left[ \log p_{\q}(x,y)\right]
+% \end{equation}
+
+Inspired by JEM objective~\cite{grathwohl2019your}, we propose a extension of CEBM that models both the data and label. We achieve this we use an encoder $t_\q(x)$ that outputs separate components $t_{\q,z}(x)$ and $t_{\q,y}(x)$ for a continuous variable $z$ and the class label $y$. We then combine this with an inductive bias $b_\q(z,y) = b_\q(z) + b_\q(y)$ in which the bias on $z$ is a spherical Gaussian and the bias on $y$ is a uniform distribution over labels. This yields the energy function
+\begin{align*}
+E_\q(x,y,z) 
+&=
+- \big( \lambda_y + t_{\q,y}(x) \big)^\top \eta(y) 
+\\ 
+&\qquad
+- \big( \lambda_z + t_{\q,z}(x) \big)^\top \eta(z) 
+ - A(\lambda_y,\lambda_z)
+\end{align*}
+We refer to this model as the Semi-Supervised CEBM (SS-CEBM). The model is similar to the encoder in M2~\cite{kingma2014semisupervised}, which is the baseline we compare against. We perform experiments on MNIST and SVHN with 10, 100, 1000, and 5000 evenly split labels (see Table~\ref{tab:ssl}), where we observe that SS-CEBM is able to achieve competitive results in semi-supervised learning.  
+
+
+%When there are labels available, we optimize $p_{\q}(x,y)$ which we achieve by marginalizing over $z$. For the unlabeled data, we marginalize over $y$ in $\gamma_{\q}(x,y)$ and optimize the unnormalized distribution $\gamma_{\q}(x)$. 
+
+
+% The joint distribution $p_{\q}(x, y, z)$ is the same as Equation~\ref{eq:cebmm-joint}
+% \begin{align}
+% \frac{1}{K} \exp \{A_{0}(t_{\q}(x) + \lambda) - A_{0}(\lambda)\}\left(\sum_y\exp\{f_{\q}(x)[y]\}\right)
+% \end{align}
+% \begin{equation}
+% \label{eq:ssl-cebm-gxy}
+% \frac{1}{K} \exp \{A_{0}(t_{\q}(x) + \lambda) -  A_{0}(\lambda) + f_{\q}(\vx)[y]\}.
+% \end{equation}
+}
 % \begin{table*}[!h]
 % \caption{AUROC; Out-of-Domain Detection.}
 % \begin{subtable}[h]{\textwidth}
@@ -988,7 +973,11 @@ We report the classification accuracy on the test set in Table~\ref{tab:few-shot
 % \end{subtable}
 % \label{appendix-tab:ood-detection}
 % \end{table*}
+\vspace*{-1.0ex}
+\subsection{Out-of-Distribution Detection}\label{sec:exp:ood}
+\vspace*{-1.0ex}
 
+EBMs have formed the basis for encouraging results in out-of-distribution (OOD) detection~\cite{du2019implicit,grathwohl2019your}. While it is not our focus in this paper, OOD detection can serve as an additional benchmark that helps evaluate whether a learned model accurately characterizes the data distribution. In Appendix~\ref{appendix-sec:ood-detection}, we report results in terms of two metrics. The first is the area under the receiver-operator curve (AUROC) when thresholding the log marginal $\log p_\q(x)$.  The second is the gradient-based score function proposed by ~\citet{grathwohl2019your}. CEBMs results for OOD detection in most cases improve upon VAE and IGEBM baselines.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \vspace*{-0.5ex}
@@ -997,11 +986,9 @@ We report the classification accuracy on the test set in Table~\ref{tab:few-shot
 % \vspace*{-0.5ex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% aabi version
-% We introduced CEBMs; a new family of energy-based models that define a joint energy function over both the data and latent variables. The joint distribution factorizes into a tractable posterior and a marginal likelihood, imposing an inductive bias on the latent space. This factorization allows us to directly optimize the marginal likelihood of the data, while at the same time imposing an inductive bias on the latent space. Experimental results for this class of models are encouraging; we observe a closer agreement between unsupervised representations and class labels, which translates into improvements in downstream classification tasks. 
-
 % Unsupervised representation  is one of the key goals of training deep generative models. 
-We introduced CEBMs; a new family of energy-based models that define a joint energy function over both the data and latent variables. The joint distribution in a CEBM factorizes into a tractable posterior and an intractable energy-based marginal likelihood. This factorization allows us to directly optimize the marginal likelihood of the data, while at the same time imposing an inductive bias on the latent space. Experimental results for this class of models are encouraging; we observe a closer agreement between unsupervised representations and class labels, which translates into improvements in downstream classification tasks relative to VAE-based baselines. This work opens up opportunities to explore conjugate energy-based models with structured bias terms as an alternative to models based on VAEs in settings where we are hoping to reason about structured representations with little or no supervision. 
+We introduced CEBMs; a new family of energy-based models that define a joint energy function over both the data and latent variables. The joint distribution in a CEBM factorizes into a tractable posterior over latent variables and an intractable energy-based marginal likelihood. This factorization allows us to directly optimize the marginal likelihood of the data, while at the same time imposing an inductive bias on the latent space. Experimental results for this class of models are encouraging; we observe 
+a closer agreement between unsupervised representations and class labels, which translates into improvements in downstream classification tasks relative to VAE-based baselines. This work opens up opportunities to explore conjugate energy-based models with structured bias terms as an alternative to models based on VAEs in settings where we are hoping to reason about structured representations with little or no supervision. 
 
 
 % In the unusual situation where you want a paper to appear in the
