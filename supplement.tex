@@ -37,28 +37,29 @@
 \icmltitle{Supplementary Materials for Conjugate Energy-Based Models}
 \appendix
 
-\section{Connection to Other Models}
-\label{app:sec:connection-to-other-models}
-
-\subsection{VAEs}
-\label{app:sec:vae}
-We can interpret the generative model in a VAE as a model with an energy function
-\begin{align}
-    E_\q(x, z) = -t(x)^\top \eta_\q(z) - b_\q(z), \qquad \eta_\q(z) = \eta(\mu_\q(z)).
-\end{align}
-In this setting, $\mu_\q(z)$ is the generator network that maps low-dimensional latent variables to a high-dimensional vector of natural parameters. The function $t(x)$ is a known mapping of data to the sufficient statistics of a Gaussian or Bernoulli likelihood.
-
-The bias $b_\q(z)$ contains the terms in the log density $\log p_\q(x,z)$ that only depend on $z$. There are two such terms: (1) the log prior $\log p(z)$, (2) the log normalizer $A(\eta_\q(z))$ for the likelihood $\log p_\q(x \mid z)$.  Combining these terms yields the bias
-% Given that the two most common likelihoods in VAEs are the Gaussian and Bernoulli distributions, which can be computed in closed form because  are in the exponential family.
-\begin{align}
-    \label{eq:vae-bias}
-    b_\q(z) = \log p(z) - A(\eta_\q(z)).
-\end{align}
-In other words, in a VAE we use known sufficient statistics $t(x)$, and train a generator to learn the natural parameters $\eta_\theta(z)$. In a CEBM, by contrast, we assume known natural parameters $\eta(z)$ and train an encoder to learn the sufficient statistics $t_\theta(x)$. It is worth noting that this formulation only applies when the VAE's likelihood satisfies two conditions: (1) it belongs to an exponential family (2) the base measure does not depend on $x$.   
-
-
-\subsection{Exponential Family Harmoniums}
+\section{Connection to Exponential Family Harmoniums}
 \label{app:sec:rbm}
+% \label{app:sec:connection-to-other-models}
+
+% \subsection{VAEs}
+% \label{app:sec:vae}
+% We can interpret the generative model in a VAE as a model with an energy function
+% \begin{align}
+%     E_\q(x, z) = -t(x)^\top \eta_\q(z) - b_\q(z), \qquad \eta_\q(z) = \eta(\mu_\q(z)).
+% \end{align}
+% In this setting, $\mu_\q(z)$ is the generator network that maps low-dimensional latent variables to a high-dimensional vector of natural parameters. The function $t(x)$ is a known mapping of data to the sufficient statistics of a Gaussian or Bernoulli likelihood.
+
+% The bias $b_\q(z)$ contains the terms in the log density $\log p_\q(x,z)$ that only depend on $z$. There are two such terms: (1) the log prior $\log p(z)$, (2) the log normalizer $A(\eta_\q(z))$ for the likelihood $\log p_\q(x \mid z)$.  Combining these terms yields the bias
+% % Given that the two most common likelihoods in VAEs are the Gaussian and Bernoulli distributions, which can be computed in closed form because  are in the exponential family.
+% \begin{align}
+%     \label{eq:vae-bias}
+%     b_\q(z) = \log p(z) - A(\eta_\q(z)).
+% \end{align}
+% In other words, in a VAE we use known sufficient statistics $t(x)$, and train a generator to learn the natural parameters $\eta_\theta(z)$. In a CEBM, by contrast, we assume known natural parameters $\eta(z)$ and train an encoder to learn the sufficient statistics $t_\theta(x)$. It is worth noting that this formulation only applies when the VAE's likelihood satisfies two conditions: (1) it belongs to an exponential family (2) the base measure does not depend on $x$.   
+
+
+% \subsection{Exponential Family Harmoniums}
+
 
 There is a long history of incorporating latent variables in EBMs, particularly in the context of restricted Boltzmann machines (RBMs)~\citep{smolensky1986information,hinton2002training}, deep belief nets~\citep{hinton2006fast}, and deep Boltzmann machines~\citep{salakhutdinov2009deep}. The idea of formulating EBMs into the exponential family is also not new; \citet{welling2005exponential} proposed a new class of models called Exponential Family Harmoniums (EFHs) by extending RBMs into the exponential family. In this Section, we discuss the connection between our approach to these models. Concretely, we show that EFHs can be recovered a special case of CEBMs.
 
@@ -118,14 +119,19 @@ in Equation~\ref{eq:cebm-energy}, we recover the energy function for an EFH. Per
 \end{align}
 
 
+\section{Training Details}
+\label{app:sec:training-details}
+In CEBMs and VAEs, we choose the dimension of latent variables to be 128. For CEBMS, We found that the optimization becomes difficult with smaller dimensions. We L2 regularize energy magnitudes (proposed by~\citet{du2019implicit}), where the coefficient of the L2 regularization term is 0.1. We empirically found that the training would become unstable without this regularization. We train our models using 60 SGLD steps where we initialize samples from the replay buffer with 0.95 probability, and initialize from uniform noise with 0.05 probability. We train all the models with 90k gradient steps, batch size 128, Adam optimizer with learning rate 1e-4. When doing PCD, we used a reply buffer of size 5000. We set the $\alpha$ in the SGLD teps to be 0.075. Similar to~\citet{du2019implicit}, we found it useful to add some noise to the image before encoding. In our experiments, we used Gaussian noise with $\sigma^{2} = 0.03$. For the mixture models (CEBMM and GMM-VAE), we used 50 mixtures.  
 
+\newpage
 \section{Model Architectures}
 \label{appendix-architectures}
-Table~\ref{appendex:tab:arch-cebm}, Table~\ref{appendex:tab:arch-vae}, and Table~\ref{appendex:tab:arch-igebm} show the architectures used for CEBM, VAE, and IGEBM, respectively.
+Table~\ref{app:tab:arch-cebm}, Table~\ref{app:tab:arch-vae}, and Table~\ref{app:tab:arch-igebm} show the architectures used for CEBM, VAE, and IGEBM, respectively.
 
 \begin{table}[!h]
-\caption{Architecture of CEBM}
+\caption{Architecture of CEBM and GMM-CEBM}
     \centering
+    \vspace*{1ex}
     \begin{subtable}[h]{.5\linewidth}
     \caption{MNIST and Fashion-MNIST.}
     \centering
@@ -135,15 +141,15 @@ Table~\ref{appendex:tab:arch-cebm}, Table~\ref{appendex:tab:arch-vae}, and Table
         \midrule
         Input $28\times28\times1$ images  \\
         \hline 
-        $3\times3$ conv. 64 LeakyReLU. stride 1. padding 1  \\
+        $3\times3$ conv. 64 stride 1. padding 1. Swish.  \\
         \hline 
-        $4\times4$ conv. 64 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 64 stride 2. padding 1. Swish. \\
         \hline 
-        $4\times4$ conv. 32 LeakyReLU. stride 2. padding 1  \\
+        $4\times4$ conv. 32 stride 2. padding 1. Swish.  \\
         \hline
-        $4\times4$ conv. 32 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 32 stride 2. padding 1. Swish. \\
         \hline
-        FC. 128 LeakyReLU \\
+        FC. 128 Swish. \\
         \hline
         FC. $2\times128$ \\
         \bottomrule
@@ -158,30 +164,85 @@ Table~\ref{appendex:tab:arch-cebm}, Table~\ref{appendex:tab:arch-vae}, and Table
         \midrule
         Input $32\times32\times3$ images  \\
         \hline 
-        $3\times3$ conv. 64 LeakyReLU. stride 1. padding 1  \\
+        $3\times3$ conv. 64 \hspace{0.2em} stride 1. padding 1. Swish.  \\
         \hline 
-        $4\times4$ conv. 128 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 128 stride 2. padding 1. Swish. \\
         \hline 
-        $4\times4$ conv. 256 LeakyReLU. stride 2. padding 1  \\
+        $4\times4$ conv. 256  stride 2. padding 1. Swish.  \\
         \hline
-        $4\times4$ conv. 512 LeakyReLU. stride 2. padding 1  \\
+        $4\times4$ conv. 512  stride 2. padding 1. Swish.  \\
         \hline
-        FC. 128 LeakyReLU \\
+        FC. 1024 Swish. \\
         \hline
         FC. $2\times128$\\
         \bottomrule
         \end{tabular}
     \vspace*{1ex}
     \end{subtable}
-    \label{appendex:tab:arch-cebm}
+    \label{app:tab:arch-cebm}
+\end{table}
+
+\begin{table}[!h]
+\caption{Architecture of IGEBM}
+    \centering
+    \vspace*{1ex}
+    \begin{subtable}[h]{.5\textwidth}
+    \caption{MNIST and Fashion-MNIST.}
+    \centering
+        \begin{tabular}{|l|}
+        \toprule
+        \textbf{Encoder} \\
+        \midrule
+        Input $28\times28\times1$ images  \\
+        \hline 
+        $3\times3$ conv. 64  stride 1. padding 1. Swish.  \\
+        \hline 
+        $4\times4$ conv. 64  stride 2. padding 1. Swish. \\
+        \hline 
+        $4\times4$ conv. 32  stride 2. padding 1. Swish.  \\
+        \hline
+        $4\times4$ conv. 32  stride 2. padding 1. Swish. \\
+        \hline
+        FC. 128 Swish. \\
+        \hline
+        FC. 128 Swish. FC. 1 \\
+        \bottomrule
+        \end{tabular}
+    \end{subtable}%%%
+    \begin{subtable}[h]{.5\textwidth}
+    \caption{CIFAR10 and SVHN.}
+    \centering
+        \begin{tabular}{|l|}
+        \toprule
+        \textbf{Encoder}  \\
+        \midrule
+        Input $32\times32\times3$ images  \\
+        \hline 
+        $3\times3$ conv. 64 \hspace{0.2em} stride 1. padding 1. Swish.  \\
+        \hline 
+        $4\times4$ conv. 128  stride 2. padding 1. Swish. \\
+        \hline 
+        $4\times4$ conv. 256 stride 2. padding 1. Swish.  \\
+        \hline
+        $4\times4$ conv. 512  stride 2. padding 1. Swish. \\
+        \hline
+        FC. 1024 Swish \\
+        \hline
+        FC. 128 Swish. FC. 1\\
+        \bottomrule
+        \end{tabular}
+    \vspace*{1ex}
+    \end{subtable}
+    \label{app:tab:arch-igebm}
 \end{table}
 
 
 
 % \newpage
 \begin{table}[!h]
-\caption{Architecture of VAE}
+\caption{Architecture of VAE and GMM-VAE}
     \centering
+        \vspace*{1ex}
     \begin{subtable}[h]{\textwidth}
     \caption{MNIST and Fashion-MNIST.}
     \centering
@@ -191,17 +252,16 @@ Table~\ref{appendex:tab:arch-cebm}, Table~\ref{appendex:tab:arch-vae}, and Table
         \midrule
         Input $28\times28\times1$ images & Input $z\in \mathbb{R}^{128}$ latent variables \\
         \hline 
-        $3\times3$ conv. 64 LeakyReLU. stride 1. padding 1 & FC. 128 ReLU \\
+        $3\times3$ conv. 64 stride 1. padding 1. ReLU. & FC. 128 ReLU. FC. $3\times3\times32$ ReLU. \\
         \hline 
-        $4\times4$ conv. 64 LeakyReLU. stride 2. padding 1 & FC. $3\times3\times32$ ReLU \\
+        $4\times4$ conv. 64 stride 2. padding 1. ReLU. & $4\times4$ upconv. 32 stride 2. padding 1. ReLU. \\
         \hline 
-        $4\times4$ conv. 32 LeakyReLU. stride 2. padding 1 & $4\times4$ upconv. 32 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 32 stride 2. padding 1. ReLU. & $4\times4$ upconv. 64 stride 2. padding 1. ReLU. \\
         \hline
-        $4\times4$ conv. 32 LeakyReLU. stride 2. padding 1 & $4\times4$ upconv. 64 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 32 stride 2. padding 1. ReLU. & $4\times4$ upconv. 64 stride 2. padding 0. ReLU. \\
         \hline
-        FC. 128 ReLU & $4\times4$ upconv. 64 LeakyReLU. stride 2. padding 0 \\
-        \hline
-        FC. $2\times128$ & $3\times3$ upconv. 1 stride 1. padding 0 \\
+        FC. 128 ReLU. FC. $2\times128$. & $3\times3$ upconv. 1 \hspace{0.2em} stride 1. padding 0 \\
+        % \hline
         \bottomrule
         \end{tabular}
     \vspace*{1ex}
@@ -215,80 +275,168 @@ Table~\ref{appendex:tab:arch-cebm}, Table~\ref{appendex:tab:arch-vae}, and Table
         \midrule
         Input $32\times32\times3$ images & Input $z\in \mathbb{R}^{128}$ latent variables \\
         \hline 
-        $3\times3$ conv. 64 LeakyReLU. stride 1. padding 1 & FC. 128 ReLU \\
+        $3\times3$ conv. 64 stride 1. padding 1. ReLU. & FC. 128 ReLU. FC. $4\times4\times512$ ReLU. \\
         \hline 
-        $4\times4$ conv. 128 LeakyReLU. stride 2. padding 1 & FC. $4\times4\times512$ ReLU \\
+        $4\times4$ conv. 128  stride 2. padding 1. ReLU. &  $4\times4$ upconv. 32 stride 2. padding 1. ReLU. \\
         \hline 
-        $4\times4$ conv. 256 LeakyReLU. stride 2. padding 1 & $4\times4$ upconv. 32 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 256  stride 2. padding 1. ReLU. & $4\times4$ upconv. 64 stride 2. padding 1. ReLU. \\
         \hline
-        $4\times4$ conv. 512 LeakyReLU. stride 2. padding 1 & $4\times4$ upconv. 64 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 512  stride 2. padding 1. ReLU. & $3\times3$ upconv. 64 stride 2. padding 1. ReLU. \\
         \hline
-        FC. 128 ReLU & $3\times3$ upconv. 64 LeakyReLU. stride 2. padding 1 \\
-        \hline
-        FC. $2\times128$ & $3\times3$ upconv. 1 stride 1. padding 1 \\
+        FC. 1024 ReLU. FC. $2\times128$. & $3\times3$ upconv. 1 \hspace{0.2em} stride 1. padding 1 \\
         \bottomrule
         \end{tabular}
     \vspace*{1ex}
     \end{subtable}
-    \label{appendex:tab:arch-vae}
+    \label{app:tab:arch-vae}
 \end{table}
 
-\begin{table}[!h]
-\caption{Architecture of IGEBM}
+
+\begin{table}[!t]
+\caption{Architecture of BIGAN and GMM-BIGAN}
     \centering
-    \begin{subtable}[h]{.5\textwidth}
+        \vspace*{1ex}
+    \begin{subtable}[h]{\textwidth}
     \caption{MNIST and Fashion-MNIST.}
     \centering
         \begin{tabular}{|l|}
         \toprule
-        \textbf{Encoder} \\
+        \textbf{Discriminator}  \\
         \midrule
         Input $28\times28\times1$ images  \\
         \hline 
-        $3\times3$ conv. 64 LeakyReLU. stride 1. padding 1  \\
+        $3\times3$ conv. 64 stride 1. padding 1. BatchNorm. LeakyReLU. \\
         \hline 
-        $4\times4$ conv. 64 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 64 stride 2. padding 1. BatchNorm. LeakyReLU. \\
         \hline 
-        $4\times4$ conv. 32 LeakyReLU. stride 2. padding 1  \\
+        $4\times4$ conv. 32 stride 2. padding 1. BatchNorm. LeakyReLU. \\
         \hline
-        $4\times4$ conv. 32 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 32  stride 2. padding 1. BatchNorm. LeakyReLU.  \\
         \hline
-        FC. 128 LeakyReLU \\
+        FC. 128 LeakyReLU.   \\
         \hline
-        FC. 128 LeakyReLU. FC. 1 \\
+        256. FC 128 LeakyReLU. FC. $1$. Sigmoid. \\
         \bottomrule
         \end{tabular}
-    \end{subtable}%%%
-    \begin{subtable}[h]{.5\textwidth}
-    \caption{CIFAR10 and SVHN.}
+    \vspace*{1ex}
+    \end{subtable}
+    \begin{subtable}[h]{\textwidth}
+    % \caption{MNIST and Fashion-MNIST.}
+    \centering
+        \begin{tabular}{|l|}
+        \toprule
+        \textbf{Generator} \\
+        \midrule
+         Input $z\in \mathbb{R}^{128}$ latent variables \\
+        \hline 
+        $4\times4$ upconv. 64 stride 1. padding 1. BatchNorm. ReLU. \\
+        \hline 
+        $4\times4$ upconv. 64 stride 2. padding 1. BatchNorm. ReLU. \\
+        \hline
+        $3\times3$ upconv. 32 stride 2. padding 1. BatchNorm. ReLU. \\
+        \hline
+        $4\times4$ upconv. 32 stride 2. padding 1. BatchNorm. ReLU. \\
+        \hline
+        $4\times4$ upconv. 1 \hspace{0.2em} stride 2. padding 1. Tanh. \\
+        \bottomrule
+        \end{tabular}
+    \vspace*{1ex}
+    \end{subtable}
+    \begin{subtable}[h]{\textwidth}
     \centering
         \begin{tabular}{|l|}
         \toprule
         \textbf{Encoder}  \\
         \midrule
-        Input $32\times32\times3$ images  \\
+        Input $28\times28\times1$ images  \\
         \hline 
-        $3\times3$ conv. 64 LeakyReLU. stride 1. padding 1  \\
+        $3\times3$ conv. 64 stride 1. padding 1. BatchNorm. LeakyReLU. \\
         \hline 
-        $4\times4$ conv. 128 LeakyReLU. stride 2. padding 1 \\
+        $4\times4$ conv. 64 stride 2. padding 1. BatchNorm. LeakyReLU. \\
         \hline 
-        $4\times4$ conv. 256 LeakyReLU. stride 2. padding 1  \\
+        $4\times4$ conv. 32 stride 2. padding 1. BatchNorm. LeakyReLU. \\
         \hline
-        $4\times4$ conv. 512 LeakyReLU. stride 2. padding 1  \\
+        $4\times4$ conv. 32  stride 2. padding 1. BatchNorm. LeakyReLU.  \\
         \hline
-        FC. 128 LeakyReLU \\
-        \hline
-        FC. 128 LeakyReLU. FC. 1\\
+        FC. 128 LeakyReLU. FC. $2\times128$.  \\
         \bottomrule
         \end{tabular}
     \vspace*{1ex}
     \end{subtable}
-    \label{appendex:tab:arch-igebm}
+    
+    \begin{subtable}[h]{\textwidth}
+    \caption{CIFAR10 and SVHN.}
+    \centering
+        \begin{tabular}{|l|}
+        \toprule
+        \textbf{Discriminator}  \\
+        \midrule
+        Input $28\times28\times1$ images  \\
+        \hline 
+        $3\times3$ conv. 64 stride 1. padding 1. BatchNorm. LeakyReLU. \\
+        \hline 
+        $4\times4$ conv. 128 stride 2. padding 1. BatchNorm. LeakyReLU. \\
+        \hline 
+        $4\times4$ conv. 256 stride 2. padding 1. BatchNorm. LeakyReLU. \\
+        \hline
+        $4\times4$ conv. 512  stride 2. padding 1. BatchNorm. LeakyReLU.  \\
+        \hline
+        FC. 128 LeakyReLU. \\
+        \hline
+        256 FC 128 LeakyReLU. FC. $1$. Sigmoid.  \\
+        \bottomrule
+        \end{tabular}
+    \vspace*{1ex}
+    \end{subtable}
+    \begin{subtable}[h]{\textwidth}
+    \centering
+        \begin{tabular}{|l|}
+        \toprule
+        \textbf{Generator} \\
+        \midrule
+         Input $z\in \mathbb{R}^{128}$ latent variables \\
+        \hline 
+        $4\times4$ upconv. 512 stride 2. padding 1. BatchNorm. ReLU. \\
+        \hline 
+        $4\times4$ upconv. 256 stride 2. padding 1. BatchNorm. ReLU. \\
+        \hline
+        $4\times4$ upconv. 128 stride 2. padding 1. BatchNorm. ReLU. \\
+        \hline
+        $4\times4$ upconv. 64 stride 2. padding 1. BatchNorm. ReLU. \\
+        \hline
+        $4\times4$ upconv. 3 \hspace{0.2em} stride 2. padding 1. Tanh. \\
+        \bottomrule
+        \end{tabular}
+    \vspace*{1ex}
+    \end{subtable}
+    \begin{subtable}[h]{\textwidth}
+    \centering
+        \begin{tabular}{|l|}
+        \toprule
+        \textbf{Encoder}  \\
+        \midrule
+        Input $28\times28\times1$ images  \\
+        \hline 
+        $3\times3$ conv. 64 stride 1. padding 1. BatchNorm. LeakyReLU. \\
+        \hline 
+        $4\times4$ conv. 128 stride 2. padding 1. BatchNorm. LeakyReLU. \\
+        \hline 
+        $4\times4$ conv. 256 stride 2. padding 1. BatchNorm. LeakyReLU. \\
+        \hline
+        $4\times4$ conv. 512  stride 2. padding 1. BatchNorm. LeakyReLU.  \\
+        \hline
+        FC. 128 LeakyReLU. FC $2\times128$. \\
+        \bottomrule
+        \end{tabular}
+    \vspace*{1ex}
+    \end{subtable}
+    \label{app:tab:arch-gans}
 \end{table}
 
-\section{Training Details}
-\label{app:sec:training-details}
-In CEBMs and VAEs, we choose the dimension of latent variables to be 128. For CEBMS, We found that the optimization becomes difficult with smaller dimensions. We L2 regularize energy magnitudes (proposed by~\citet{du2019implicit}), where the coefficient of the L2 regularization term is 0.1. We empirically found that the training would become unstable without this regularization. We train our models using 60 SGLD steps where we initialize samples from the replay buffer with 0.95 probability, and initialize from uniform noise with 0.05 probability. We train all the models with 90k gradient steps, batch size 128, Adam optimizer with learning rate 1e-4. When doing PCD, we used a reply buffer of size 5000. We set the $\alpha$ in the SGLD teps to be 0.075. Similar to~\citet{du2019implicit}, we found it useful to add some noise to the image before encoding. In our experiments, we used Gaussian noise with $\sigma^{2} = 0.03$. For the mixture models (CEBMM and GMM-VAE), we used 50 mixtures.  
+
+
+
+
 
 \newpage
 \section{Additional Results}
@@ -299,54 +447,63 @@ In CEBMs and VAEs, we choose the dimension of latent variables to be 128. For CE
 We perform 1-nearest-neighbor classification task for MNIST, Fashion-MNIST, SVHN, CIFAR10. We compute the L2 distance in the latent space of VAE, IGEBM and CEBM, and also in pixel space. We visualize the confusion matrices
 \begin{figure}[!h]
 \centering
+\vspace*{-2ex}
 \includegraphics[width=\linewidth]{figures/confusion_matrix_14row_mnist.pdf}
+\vspace*{-6ex}
 \caption{MNIST}
 \label{appendix:confusion-matrices-mnist}
 \end{figure}
+\vspace*{-1em}
 \begin{figure}[!h]
 \centering
+\vspace*{-2ex}
 \includegraphics[width=\linewidth]{figures/confusion_matrix_14row_fashionmnist.pdf}
+\vspace*{-6ex}
 \caption{Fashion-MNIST}
 \label{appendix:confusion-matrices-fmnist}
 \end{figure}
-\vspace{-2em}
+\vspace*{-1em}
 \begin{figure}[!h]
 \centering
+\vspace*{-2ex}
 \includegraphics[width=\linewidth]{figures/confusion_matrix_14row_svhn.pdf}
+\vspace*{-6ex}
 \caption{SVHN}
 \label{appendix:confusion-matrices-svhn}
 \end{figure}
-\vspace{-2em}
+\vspace*{-1em}
 \begin{figure}[!h]
 \centering
+\vspace*{-2ex}
 \includegraphics[width=\linewidth]{figures/confusion_matrix_14row_cifar10.pdf}
+\vspace*{-6ex}
 \caption{CIFAR10}
 \label{appendix:confusion-matrices-cifar10}
 \end{figure}
 
-\newpage
-\subsection{Out-of-Distribution Detection}
-\label{appendix-sec:ood-detection}
-We compute the AUROC score in OOD detection based on two different score functions.
-\setlength{\tabcolsep}{4.5pt}
-\begin{table*}[!h]
-\caption{AUROC scores in OOD Detection. We use $\log p_{\q}(\x)$ and $\| \nabla_{\x}\log p_{\q}(\x)\|$ as score functions.The left block shows results of the models trained on F-MNIST and tested on MNIST, E-MNIST, Constant (C); The right block shows results of the models trained on CIFAR-10 and tested on SVHN, Texture and Constant (C).}
-\centering
-\begin{tabular}{l|ccc|ccc||ccc|ccc}
-\toprule
-& \multicolumn{6}{c||}{Fashion-MNIST} &    \multicolumn{6}{c}{CIFAR-10}\\
-& \multicolumn{3}{c|}{$\log p_{\q}(\x)$} & \multicolumn{3}{c||}{$\| \nabla_{\x}\log p_{\q}(\x)\|$} &  \multicolumn{3}{c|}{$\log p_{\q}(\x)$} & \multicolumn{3}{c}{$\| \nabla_{\x}\log p_{\q}(\x)\|$}\\
-\midrule
-            &  MNIST  & E-MNIST& C &  MNIST & E-MNIST & C &  SVHN & Texture & C &  SVHN & Texture & C \\
-\midrule
-VAE         & .50 & .39 & .9 & .61 & .57 & .1  & .42 & \textbf{.58} & .41 & .38 & \textbf{.51} & .37 \\
-IGEBM       & .35 & .36 & .90 & .78 & .82 & .96& .45 & .31 & .64 & .33 & .17 & \textbf{.62} \\
-CEBM        & .37 & .34 & .90 & \textbf{.82} & \textbf{.89} & \textbf{.98} & .47 & .32 & \textbf{.66} & .31 & .17 & .54 \\
-CEBMM       & \textbf{.56} & \textbf{.56} & \textbf{.92} & .56 & .80 & .95     & \textbf{.55} & .30 & .62 & \textbf{.40} & .23 & \textbf{.62}  \\
-\bottomrule
-\end{tabular}
-\label{app:tab:ood-detection}
-\end{table*}
+% \newpage
+% \subsection{Out-of-Distribution Detection}
+% \label{appendix-sec:ood-detection}
+% We compute the AUROC score in OOD detection based on two different score functions.
+% \setlength{\tabcolsep}{4.5pt}
+% \begin{table*}[!h]
+% \caption{AUROC scores in OOD Detection. We use $\log p_{\q}(\x)$ and $\| \nabla_{\x}\log p_{\q}(\x)\|$ as score functions.The left block shows results of the models trained on F-MNIST and tested on MNIST, E-MNIST, Constant (C); The right block shows results of the models trained on CIFAR-10 and tested on SVHN, Texture and Constant (C).}
+% \centering
+% \begin{tabular}{l|ccc|ccc||ccc|ccc}
+% \toprule
+% & \multicolumn{6}{c||}{Fashion-MNIST} &    \multicolumn{6}{c}{CIFAR-10}\\
+% & \multicolumn{3}{c|}{$\log p_{\q}(\x)$} & \multicolumn{3}{c||}{$\| \nabla_{\x}\log p_{\q}(\x)\|$} &  \multicolumn{3}{c|}{$\log p_{\q}(\x)$} & \multicolumn{3}{c}{$\| \nabla_{\x}\log p_{\q}(\x)\|$}\\
+% \midrule
+%             &  MNIST  & E-MNIST& C &  MNIST & E-MNIST & C &  SVHN & Texture & C &  SVHN & Texture & C \\
+% \midrule
+% VAE         & .50 & .39 & .9 & .61 & .57 & .1  & .42 & \textbf{.58} & .41 & .38 & \textbf{.51} & .37 \\
+% IGEBM       & .35 & .36 & .90 & .78 & .82 & .96& .45 & .31 & .64 & .33 & .17 & \textbf{.62} \\
+% CEBM        & .37 & .34 & .90 & \textbf{.82} & \textbf{.89} & \textbf{.98} & .47 & .32 & \textbf{.66} & .31 & .17 & .54 \\
+% CEBMM       & \textbf{.56} & \textbf{.56} & \textbf{.92} & .56 & .80 & .95     & \textbf{.55} & .30 & .62 & \textbf{.40} & .23 & \textbf{.62}  \\
+% \bottomrule
+% \end{tabular}
+% \label{app:tab:ood-detection}
+% \end{table*}
 % \end{document}
 
 % \begin{algorithm}[!t]
